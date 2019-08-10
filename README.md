@@ -7,6 +7,21 @@ The base of project is Hardware/mailserver (https://github.com/hardware/mailserv
 
 Anybody can use and modify it with his own risk, but there is neither warranty nor support including question.
 
+ports:
+ - "25:25" SMTP - Required
+ - "110:110" POP3 - Optional
+ - "143:143" IMAP - Optional
+ - "465:465" SMTPS - Optional
+ - "587:587" Submission - Optional
+ - "993:993" IMAPS - Optional
+ - "995:995" POP3S - Optional
+ - "4190:4190" SIEVE - Optional
+ - "4191:3306" MARIADB - Optional
+ - "8081:8081" RAINLOOP - Optional
+ - "8082:11334" RSPAMD WEB - Optional
+ - "8083:8083" POSTFIXADMIN - Optional
+ - "8084:8084" PHPMYADMIN - Optional
+ 
 For the the Hardware/mailserver license rule, the following is his License including his copyright notice.
 ------------------------------------------------------------------------------
 The MIT License (MIT)
