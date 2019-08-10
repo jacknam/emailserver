@@ -22,6 +22,26 @@ ports:
  - "8083:8083" POSTFIXADMIN - Optional
  - "8084:8084" PHPMYADMIN - Optional
  
+ # Setup POSTFIXADMIN
+/*
+** Generate Setup Password and Get it from postfixadmin Web
+- Enter Setup Password and Click Generate
+- get hased password from $CONF['setup_password'] = 'something';
+
+docker exec -ti emailserver pfa_pw_setup
+> Postfixadmin setup hash: something
+*/
+
+# Setup Integrated MariDB ADMIN
+/*
+docker exec -ti emailserver admin_pw_setup
+*/
+
+# Setup Rainloop Admin Setup
+/*
+docker exec -ti emailserver rainloop_admin
+*/
+ 
 For the Hardware/mailserver license rule, the following is his License including his copyright notice.
 ------------------------------------------------------------------------------
 The MIT License (MIT)
