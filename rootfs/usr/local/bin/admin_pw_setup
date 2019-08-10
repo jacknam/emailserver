@@ -1,0 +1,46 @@
+#!/bin/bash
+
+CSI="\033["
+CEND="${CSI}0m"
+CRED="${CSI}1;31m"
+CGREEN="${CSI}1;32m"
+CBLUE="${CSI}1;34m"
+
+if ! cat /etc/hosts | grep redis | grep -q 127.0.0.1; then
+ echo -e "${CBLUE}You are not using the integrated MySQL/MariaDB, no need to set it up!${CEND}" 1>&2
+ exit 0
+fi
+
+if [ -z "${ADMINIP}" ] && [ "${DISABLE_PHPMYADMIN}" = true ]; then
+ echo -e "${CBLUE}You are using neither remote admin nor integrated phpmyadmin, no need to set it up!${CEND}" 1>&2
+ exit 0
+fi
+
+ADMINID=$(cat /etc/mysql/docker/admin_id 2>/dev/null | xargs)
+if [ -z "${ADMINID}" ]; then
+ read -rp "> Integrated MySQL/MariaDB Admin ID (length at least 5) : " ADMINID
+ if [ ${#ADMINID} -lt 5 ]; then
+  echo -e "${CRED}! Admin ID length should be greater than 5 !${CEND}" 1>&2
+  exit 1
+ fi
+fi
+
+read -rp "> Integrated MySQL/MariaDB Admin (\"${ADMINID}\") Password (length at least 5) : " PASSWORD
+if [ ${#PASSWORD} -lt 5 ]; then
+ echo -e "${CRED}! Password length should be greater than 5 !${CEND}" 1>&2
+ exit 1
+fi
+
+read -rp "> Are you sure to set admin \"${ADMINID}\" with a password \"${PASSWORD}\" (y/N) ? : " CONFIRM
+if [ "${CONFIRM,,}" != "y" ]; then
+ PASSWORD=""
+ echo -e "${CRED}! Admin setup has been cancelled !${CEND}" 1>&2
+ exit 1
+fi
+
+echo "${ADMINID}" > /etc/mysql/docker/admin_id
+echo "${PASSWORD}" > /etc/mysql/docker/admin_pw_setup
+echo -e "${CGREEN}The admin \"${ADMINID}\" with a password \"${PASSWORD}\" has been setup.${CEND}"
+echo -e "${CRED}You should restart docker to apply this admin password.${CEND}"
+echo -e "${CBLUE}\"docker restart emailserver\"${CEND}"
+PASSWORD=""

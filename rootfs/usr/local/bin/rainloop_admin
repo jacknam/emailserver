@@ -1,0 +1,64 @@
+#!/bin/bash
+
+CSI="\033["
+CEND="${CSI}0m"
+CRED="${CSI}1;31m"
+CGREEN="${CSI}1;32m"
+CBLUE="${CSI}1;34m"
+
+if [ ! -d /etc/rainloop ] && [ "${DISABLE_RAINLOOP}" = true ]; then
+ echo -e "${CBLUE}You are not using rainloop, no need to set it up!${CEND}" 1>&2
+ exit 0
+fi
+
+if [ ! -f /etc/rainloop/data/SALT.php ]; then
+ echo -e "${CRED}Rainloop installation is not completed!${CEND}" 1>&2
+ exit 1
+fi
+
+if [ -f /etc/rainloop/.admin ]; then
+ source /etc/rainloop/.admin
+fi
+
+current_admin=$([ -n "${admin_login}" ] && echo "currently '${admin_login}' ")
+read -rp "> Rainloop Admin ID (length at least 5) ${current_admin}: " ADMINID
+if [ -n "${admin_login}" ] && [ -z "${ADMINID}" ]; then
+ ADMINID="${admin_login}"
+elif [ ${#ADMINID} -lt 5 ]; then
+ echo -e "${CRED}! Admin ID length should be greater than 5 !${CEND}" 1>&2
+ exit 1
+fi
+
+read -rp "> Rainloop Admin (\"${ADMINID}\") Password (length at least 5) : " PASSWORD
+if [ ${#PASSWORD} -lt 5 ]; then
+ echo -e "${CRED}! Password length should be greater than 5 !${CEND}" 1>&2
+ exit 1
+fi
+
+SSALT=$(cat /etc/rainloop/data/SALT.php)
+SALT=$(php -r "echo md5('${SSALT}_default_${SSALT}');")
+HPASSWORD=$(php -r "echo md5('${SALT}${PASSWORD}${SALT}');")
+
+if [ "${ADMINID}" = "${admin_login}" ] && [ "${HPASSWORD}" = "${admin_password}" ]; then
+ echo -e "${CRED}! No Change !${CEND}" 1>&2
+ exit 1
+fi
+
+read -rp "> Are you sure to set admin \"${ADMINID}\" with a password \"${PASSWORD}\" (y/N) ? : " CONFIRM
+if [ "${CONFIRM,,}" != "y" ]; then
+ PASSWORD=""
+ HPASSWORD=""
+ echo -e "${CRED}! Admin setup has been cancelled !${CEND}" 1>&2
+ exit 1
+fi
+
+cat > /etc/rainloop/.admin <<EOF
+admin_login='${ADMINID}'
+admin_password='${HPASSWORD}'
+EOF
+
+echo -e "${CGREEN}The admin \"${ADMINID}\" with a password \"${PASSWORD}\" has been setup.${CEND}"
+echo -e "${CRED}You should restart docker to apply this admin password.${CEND}"
+echo -e "${CBLUE}\"docker restart emailserver\"${CEND}"
+PASSWORD=""
+HPASSWORD=""
