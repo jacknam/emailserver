@@ -1,0 +1,14 @@
+#!/bin/bash
+
+logger -p mail.info "s6-supervise : spawning freshclam process"
+
+# Download virus databases if they don't exist locally
+if [ ! -f /var/mail/clamav/main.cvd ]; then
+  freshclam --quiet
+fi
+
+# Start clamd run script
+s6-svc -u /services/clamd
+
+echo $$>/var/run/clamav/freshclam.pid
+exec freshclam -d &>/dev/null

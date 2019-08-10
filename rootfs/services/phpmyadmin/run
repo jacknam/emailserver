@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# if not using local phpmyadmin, then exit
+if [ "${DISABLE_PHPMYADMIN}" = true ]; then
+ exit 0
+fi
+
+if ! phpmyadmin_entrypoint.sh; then
+ logger -p mail.info "s6-supervise : failed to initialize phpmyadmin process"
+ exit 0
+fi
+
+logger -p mail.info "s6-supervise : spawning phpmyadmin process"
+echo $$ > /var/run/phpmyadmin/phpmyadmin.pid
+exec su phpmyadmin -g phpmyadmin -c "php -S 0.0.0.0:8084 -t /etc/phpmyadmin/public -c /etc/phpmyadmin/php.ini >/dev/null 2>&1"

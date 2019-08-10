@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# if not using local rainloop, then exit
+if [ "${DISABLE_RAINLOOP}" = true ]; then
+ exit 0
+fi
+
+if ! rainloop_entrypoint.sh; then
+ logger -p mail.info "s6-supervise : failed to initialize rainloop process"
+ exit 0
+fi
+
+logger -p mail.info "s6-supervise : spawning rainloop process"
+echo $$ > /var/run/rainloop/rainloop.pid
+exec su rainloop -g rainloop -c "php -S 0.0.0.0:8081 -t /etc/rainloop/public -c /etc/rainloop/php.ini >/dev/null 2>&1"

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# if not using local postfixadmin, then exit
+if [ "${DISABLE_POSTFIXADMIN}" = true ]; then
+ exit 0
+fi
+
+if ! postfixadmin_entrypoint.sh; then
+ logger -p mail.info "s6-supervise : failed to initialize postfixadmin process"
+ exit 0
+fi
+
+logger -p mail.info "s6-supervise : spawning postfixadmin process"
+echo $$ > /var/run/postfixadmin/postfixadmin.pid
+exec su postfixadmin -g postfixadmin -c "php -S 0.0.0.0:8083 -t /etc/postfixadmin/public -c /etc/postfixadmin/php.ini >/dev/null 2>&1"

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# if not using local redis-server, then exit
+cat /etc/hosts | grep redis | grep -q 127.0.0.1 || exit 0
+logger -p mail.info "s6-supervise : spawning redis process"
+
+echo $$ > /var/run/redis/redis-server.pid
+redis-server /etc/redis/redis.conf
+sleep infinity
