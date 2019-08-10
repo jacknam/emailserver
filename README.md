@@ -22,7 +22,7 @@ ports:
  - "8083:8083" POSTFIXADMIN - Optional
  - "8084:8084" PHPMYADMIN - Optional
  
-For the the Hardware/mailserver license rule, the following is his License including his copyright notice.
+For the Hardware/mailserver license rule, the following is his License including his copyright notice.
 ------------------------------------------------------------------------------
 The MIT License (MIT)
 
