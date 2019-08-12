@@ -133,7 +133,7 @@ usercol = "username"
 passcol = "password"
 user = "${DBUSER}"
 password = "${DBPASS}"
-encrypt = "md5crypt"
+encrypt = "sha512-crypt"
 allowed_emails = "*"
 EOF
 fi
