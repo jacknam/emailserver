@@ -122,7 +122,7 @@ rainloop_setup() {
  [ -z "${VERSION}" ] && return 1
  mkdir -p /var/mail/rainloop
 
- local files="php.ini error.log VERSION .admin"
+ local files="php.ini VERSION .admin"
  for file in ${files}; do
   if [ -f "/var/mail/rainloop/${file}" ]; then
    rm -f "/etc/rainloop/${file}"

@@ -19,4 +19,8 @@ done
 
 sed -i "s|\($CONF\['setup_password'\].*=\).*|\1 '${HASH}';|" /etc/postfixadmin/config.inc.php
 
+echo -e "${CGREEN}The admin hash password \"${HASH}\" has been setup.${CEND}"
+echo -e "${CRED}You should restart docker to apply this hash password.${CEND}"
+echo -e "${CBLUE}\"docker restart emailserver\"${CEND}"
+
 echo -e "${CGREEN}Setup done.${CEND}"

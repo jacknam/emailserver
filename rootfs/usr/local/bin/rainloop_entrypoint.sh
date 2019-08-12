@@ -21,7 +21,6 @@ if [ -z "${VERSION}" ] || [ "${VERSION}" != "${DATA_VERSION}" ] || [ ! -d "/etc/
  exit 1
 fi
 
-
 mkdir -p /etc/rainloop/data/_data_/_default_/configs /etc/rainloop/data/_data_/_default_/domains
 
 if [ ! -f /etc/rainloop/data/_data_/_default_/configs/application.ini ]; then
@@ -39,6 +38,26 @@ if [ -f /etc/rainloop/data/_data_/_default_/configs/application.ini ]; then
    -e "s/^allow_admin_panel(\s?)=.*/allow_admin_panel = Off/" \
    /etc/rainloop/data/_data_/_default_/configs/application.ini
  fi
+fi
+
+if [[ "${DBDRIVER}" == "mysql"* ]]; then
+ DBENGINE="MySQL"
+ DBTYPE="mysql"
+ DBDRIVER="mysql"
+elif [ "${DBDRIVER}" = "pgsql" ]; then
+ DBENGINE="PostgreSQL"
+ DBTYPE="sqlite"
+fi
+
+CONTACTS_SET="enable = Off"
+if [ -n "${DBTYPE}" ]; then
+read -r -d '' CONTACTS_SET <<-EOL || true
+enable = ON
+type = "${DBTYPE}"
+pdo_dsn = "${DBDRIVER}:host=${DBHOST};port=${DBPORT};dbname=rainloop"
+pdo_user = "rainloop"
+pdo_password = "${DBPASS}"
+EOL
 fi
 
 ADMIN_SET="allow_admin_panel = Off"
@@ -62,10 +81,7 @@ language = "ko_KR"
 language_admin = "en"
 
 [contacts]
-enable = ON
-pdo_dsn = "${DBDRIVER}:host=${DBHOST};port=${DBPORT};dbname=rainloop"
-pdo_user = "rainloop"
-pdo_password = "${DBPASS}"
+${CONTACTS_SET}
 
 [security]
 ${ADMIN_SET}
@@ -90,23 +106,20 @@ EOF
 cat > /etc/rainloop/data/_data_/_default_/domains/${DOMAIN}.ini <<EOF
 imap_host = "localhost"
 imap_port = 993
+imap_secure = "SSL"
 imap_short_login = Off
 sieve_use = On
 sieve_allow_raw = On
 sieve_host = "localhost"
 sieve_port = 4190
+sieve_secure = "TLS"
 smtp_host = "localhost"
 smtp_port = 587
+smtp_secure = "TLS"
 smtp_short_login = Off
 smtp_auth = On
 smtp_php_mail = Off
 EOF
-
-if [[ "${DBDRIVER}" == "mysql"* ]]; then
- DBENGINE="MySQL"
-elif [ "${DBDRIVER}" = "pgsql" ]; then
- DBENGINE="PostgreSQL"
-fi
 
 if [ -n "${DBENGINE}" ]; then
 cat > /etc/rainloop/data/_data_/_default_/configs/plugin-postfixadmin-change-password.ini <<EOF

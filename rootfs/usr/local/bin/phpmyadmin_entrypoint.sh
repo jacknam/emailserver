@@ -14,10 +14,10 @@ if [[ "${DBDRIVER}" != "mysql"* ]]; then
  exit 1
 fi
 
-if [ ! -f /etc/phpmyadmin/config.secret.inc.php ]; then
+if ! cat /etc/phpmyadmin/config.secret.inc.php 2>/dev/null | grep -q "blowfish_secret"; then
 cat > /etc/phpmyadmin/config.secret.inc.php <<EOF
 <?php
-\$cfg['blowfish_secret'] = '$(tr -dc 'a-zA-Z0-9~!@#$%^&*_()+}{?></";.,[]=-' < /dev/urandom | fold -w 32 | head -n 1)';
+\$cfg['blowfish_secret'] = '$(openssl rand -base64 32)';
 EOF
 fi
 
