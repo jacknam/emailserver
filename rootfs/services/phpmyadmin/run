@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# if not using local mariadb-server, then exit
+cat /etc/hosts | grep mariadb | grep -q 127.0.0.1 || exit 0
+
 # if not using local phpmyadmin, then exit
 if [ "${DISABLE_PHPMYADMIN}" = true ]; then
  exit 0

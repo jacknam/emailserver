@@ -41,28 +41,32 @@ DISABLE_CLAMAV=${DISABLE_CLAMAV:-false} # --
 DISABLE_DNS_RESOLVER=${DISABLE_DNS_RESOLVER:-false} # --
 
 if [ -z "$DBPASS" ]; then
-  echo "[ERROR] MariaDB/PostgreSQL database password must be set !"
-  exit 1
+ echo "[ERROR] MariaDB/PostgreSQL database password must be set !"
+ exit 1
 fi
 
 if [ -z "$RSPAMD_PASSWORD" ]; then
-  echo "[ERROR] Rspamd password must be set !"
-  exit 1
+ echo "[ERROR] Rspamd password must be set !"
+ exit 1
 fi
 
 if [ -z "$FQDN" ]; then
-  echo "[ERROR] The fully qualified domain name must be set !"
-  exit 1
+ echo "[ERROR] The fully qualified domain name must be set !"
+ exit 1
 fi
 
 if [ -z "$DOMAIN" ]; then
-  echo "[ERROR] The domain name must be set !"
-  exit 1
+ echo "[ERROR] The domain name must be set !"
+ exit 1
+fi
+
+if [ "${DBHOST}" = "mariadb" ] && [ "$(dig A mariadb +short +search)" = "127.0.0.1" ]; then
+ DBHOST="localhost"
 fi
 
 # https://github.com/docker-library/redis/issues/53
 if [[ "$REDIS_PORT" =~ [^[:digit:]] ]]; then
-  REDIS_PORT=6379
+ REDIS_PORT=6379
 fi
 
 # DATABASES HOSTNAME CHECKING
@@ -73,36 +77,36 @@ fi
 grep -q "${DBHOST}" /etc/hosts
 
 if [ $? -ne 0 ]; then
-  echo "[INFO] MariaDB/PostgreSQL hostname not found in /etc/hosts"
-  IP=$(dig A ${DBHOST} +short +search)
-  if [ -n "$IP" ]; then
-    echo "[INFO] Container IP found, adding a new record in /etc/hosts"
-    echo "${IP} ${DBHOST}" >> /etc/hosts
-  else
-    echo "[ERROR] Container IP not found with embedded DNS server... Abort !"
-    echo "[ERROR] Check your DBHOST environment variable"
-    exit 1
-  fi
+ echo "[INFO] MariaDB/PostgreSQL hostname not found in /etc/hosts"
+ IP=$(dig A ${DBHOST} +short +search)
+ if [ -n "$IP" ]; then
+  echo "[INFO] Container IP found, adding a new record in /etc/hosts"
+  echo "${IP} ${DBHOST}" >> /etc/hosts
+ else
+  echo "[ERROR] Container IP not found with embedded DNS server... Abort !"
+  echo "[ERROR] Check your DBHOST environment variable"
+  exit 1
+ fi
 else
-  echo "[INFO] MariaDB/PostgreSQL hostname found in /etc/hosts"
+ echo "[INFO] MariaDB/PostgreSQL hostname found in /etc/hosts"
 fi
 
 # Check redis hostname
 grep -q "${REDIS_HOST}" /etc/hosts
 
 if [ $? -ne 0 ]; then
-  echo "[INFO] Redis hostname not found in /etc/hosts"
-  IP=$(dig A ${REDIS_HOST} +short +search)
-  if [ -n "$IP" ]; then
-    echo "[INFO] Container IP found, adding a new record in /etc/hosts"
-    echo "${IP} ${REDIS_HOST}" >> /etc/hosts
-  else
-    echo "[ERROR] Container IP not found with embedded DNS server... Abort !"
-    echo "[ERROR] Check your REDIS_HOST environment variable"
-    exit 1
-  fi
+ echo "[INFO] Redis hostname not found in /etc/hosts"
+ IP=$(dig A ${REDIS_HOST} +short +search)
+ if [ -n "$IP" ]; then
+  echo "[INFO] Container IP found, adding a new record in /etc/hosts"
+  echo "${IP} ${REDIS_HOST}" >> /etc/hosts
+ else
+  echo "[ERROR] Container IP not found with embedded DNS server... Abort !"
+  echo "[ERROR] Check your REDIS_HOST environment variable"
+  exit 1
+ fi
 else
-  echo "[INFO] Redis hostname found in /etc/hosts"
+ echo "[INFO] Redis hostname found in /etc/hosts"
 fi
 
 # SETUP CONFIG FILES
@@ -112,8 +116,13 @@ certs_helper.sh update_certs
 
 # Make sure that configuration is only run once
 if [ ! -f "/etc/configuration_built" ]; then
-  touch "/etc/configuration_built"
-  setup.sh
+ touch "/etc/configuration_built"
+ setup.sh
+fi
+
+if [ ! -f "/etc/configuration_built_extra" ]; then
+ touch "/etc/configuration_built_extra"
+ extra-setup.sh
 fi
 
 # LAUNCH ALL SERVICES

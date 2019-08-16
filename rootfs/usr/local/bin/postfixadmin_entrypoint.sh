@@ -48,7 +48,7 @@ cat > /etc/postfixadmin/config.local.php <<EOF
 \$CONF['fetchmail'] = 'YES';
 \$CONF['fetchmail_extra_options'] = '${FETCHMAIL_EXTRA_OPTIONS}';
 \$CONF['sendmail'] = 'YES';
-\$CONF['admin_email'] = 'postfixadmin@${DOMAIN}';
+\$CONF['admin_email'] = 'postmaster@${DOMAIN}';
 \$CONF['footer_text'] = 'Return to ${DOMAIN}';
 \$CONF['footer_link'] = 'http://${DOMAIN}';
 \$CONF['default_aliases'] = array (

@@ -183,13 +183,10 @@ EOF
  return 0
 }
 
-if [ ! -f "/etc/configuration_built_extra" ]; then
- touch "/etc/configuration_built_extra"
- rspamd_local_setup
- redis_setup
- mariadb_setup
- phpmyadmin_setup
- rainloop_setup
-fi
+rspamd_local_setup
+redis_setup
+mariadb_setup
+phpmyadmin_setup
+rainloop_setup
 
 echo "[INFO] Finished extra setup"

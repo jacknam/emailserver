@@ -20,7 +20,7 @@ secure_installation() {
  local tmp_sql=""
 
 read -r -d '' tmp_sql <<-EOSQL || true
-DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost') ;
 DROP DATABASE IF EXISTS test ;
 GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 EOSQL
@@ -44,9 +44,9 @@ admin_access() {
 
  if [ -n "${admin_pw}" ]; then
 read -r -d '' pw_sql <<-EOSQL || true
-CREATE USER IF NOT EXISTS '${admin_id}'@'127.0.0.1' IDENTIFIED BY '${admin_pw}' ;
-UPDATE mysql.user SET authentication_string=PASSWORD('${admin_pw}') WHERE User='${admin_id}' AND Host='127.0.0.1' ;
-GRANT ALL ON *.* TO '${admin_id}'@'127.0.0.1' WITH GRANT OPTION ;
+CREATE USER IF NOT EXISTS '${admin_id}'@'localhost' IDENTIFIED BY '${admin_pw}' ;
+UPDATE mysql.user SET authentication_string=PASSWORD('${admin_pw}') WHERE User='${admin_id}' AND Host='localhost' ;
+GRANT ALL ON *.* TO '${admin_id}'@'localhost' WITH GRANT OPTION ;
 EOSQL
   EXECSQL+="${pw_sql}"$'\n'
  fi
@@ -127,8 +127,8 @@ create_db() {
    echo "${name} ${user}" > "${DBINFO}"
 read -r -d '' tmp_sql <<-EOSQL || true
 CREATE DATABASE IF NOT EXISTS \`${name}\` ;
-CREATE USER IF NOT EXISTS '${user}'@'127.0.0.1' IDENTIFIED BY '${DBPASS}' ;
-GRANT ALL ON \`${name}\`.* TO '${user}'@'127.0.0.1' ;
+CREATE USER IF NOT EXISTS '${user}'@'localhost' IDENTIFIED BY '${DBPASS}' ;
+GRANT ALL ON \`${name}\`.* TO '${user}'@'localhost' ;
 EOSQL
    sql+="${tmp_sql}"$'\n'
   else
@@ -137,14 +137,14 @@ EOSQL
      DUMPDB="${db_info[0]}"
 read -r -d '' tmp_sql <<-EOSQL || true
 CREATE DATABASE IF NOT EXISTS \`${name}\` ;
-GRANT ALL ON \`${name}\`.* TO '${user}'@'127.0.0.1' ;
+GRANT ALL ON \`${name}\`.* TO '${user}'@'localhost' ;
 EOSQL
      sql+="${tmp_sql}"$'\n'
      changed=true
     fi
 
     if [ "${db_info[1]}" != "${user}" ]; then
-     sql+="RENAME USER '${db_info[1]}'@'127.0.0.1' TO '${user}'@'127.0.0.1' ;"$'\n'
+     sql+="RENAME USER '${db_info[1]}'@'localhost' TO '${user}'@'localhost' ;"$'\n'
      changed=true
     fi
 
@@ -154,7 +154,7 @@ EOSQL
    fi
 
    if [ "$pass_change" = true ]; then
-    sql+="UPDATE mysql.user SET authentication_string=PASSWORD('${DBPASS}') WHERE User='${user}' AND Host='127.0.0.1' ;"$'\n'
+    sql+="UPDATE mysql.user SET authentication_string=PASSWORD('${DBPASS}') WHERE User='${user}' AND Host='localhost' ;"$'\n'
    fi
   fi
  done
@@ -176,8 +176,8 @@ create_pmadb() {
  EXECSQL+="${tmp_sql}"$'\n'
 
 read -r -d '' tmp_sql <<-EOSQL || true
-CREATE USER IF NOT EXISTS 'phpmyadmin'@'127.0.0.1' IDENTIFIED BY 'phpmyadmin' ;
-GRANT ALL ON \`phpmyadmin\`.* TO 'phpmyadmin'@'127.0.0.1' ;
+CREATE USER IF NOT EXISTS 'phpmyadmin'@'localhost' IDENTIFIED BY 'phpmyadmin' ;
+GRANT ALL ON \`phpmyadmin\`.* TO 'phpmyadmin'@'localhost' ;
 EOSQL
  EXECSQL+="${tmp_sql}"$'\n'
 
@@ -187,6 +187,7 @@ EOSQL
 [ ! -e /etc/mysql/mariadb.cnf ] && exit 1
 DATADIR="$(get_config 'datadir' | sed 's/\/$//')"
 [ ! -d "$DATADIR/mysql" ] && exit 1
+chown -R mysql:mysql /var/mail/mysql
 
 [ ! -d "${SQLPATH}" ] && mkdir -p "${SQLPATH}"
 secure_installation

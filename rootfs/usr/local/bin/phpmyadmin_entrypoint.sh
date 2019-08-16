@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DBDRIVER=${DBDRIVER:-mysql}
-DBHOST=${DBHOST:-mariadb}
 DBPORT=${DBPORT:-3306}
 
 if [ ! -d "/etc/phpmyadmin/public" ]; then
@@ -25,8 +24,8 @@ PMA_DB=""
 if [ -e /etc/mysql/docker/pmadb_installation ]; then
 read -r -d '' PMA_DB <<-EOL || true
 \$cfg['Servers'][1]['pmadb'] = 'phpmyadmin';
-\$cfg['Servers'][1]['controlhost'] = '127.0.0.1';
-\$cfg['Servers'][1]['controlport'] = '3306';
+\$cfg['Servers'][1]['controlhost'] = 'localhost';
+\$cfg['Servers'][1]['controlport'] = '${DBPORT}';
 \$cfg['Servers'][1]['controluser'] = 'phpmyadmin';
 \$cfg['Servers'][1]['controlpass'] = 'phpmyadmin';
 \$cfg['Servers'][1]['relation'] = 'pma__relation';
@@ -59,7 +58,7 @@ require('/etc/phpmyadmin/config.secret.inc.php');
 \$cfg['QueryHistoryDB'] = false;
 \$cfg['UploadDir'] = '/etc/phpmyadmin/upload';
 \$cfg['SaveDir'] = '/etc/phpmyadmin/save';
-\$cfg['Servers'][1]['host'] = '${DBHOST}';
+\$cfg['Servers'][1]['host'] = 'localhost';
 \$cfg['Servers'][1]['port'] = '${DBPORT}';
 \$cfg['Servers'][1]['auth_type'] = 'cookie';
 \$cfg['Servers'][1]['compress'] = false;
