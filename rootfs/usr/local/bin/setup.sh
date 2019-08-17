@@ -647,4 +647,3 @@ done
 chmod +x /services/*/finish
 
 echo "[INFO] Finished container setup"
-extra-setup.sh
