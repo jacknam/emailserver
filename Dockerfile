@@ -205,7 +205,7 @@ RUN mkdir -p /var/run/rainloop /etc/rainloop/sessions /etc/rainloop/data/_data_/
  chown -R rainloop:rainloop /etc/rainloop/public /etc/rainloop/data /etc/rainloop/sessions; \
  chmod 777 /var/run/rainloop
 
-EXPOSE 25 143 465 587 993 3306 4190 8081 8083 8084 11334
+EXPOSE 25 110 143 465 587 993 995 3306 4190 8081 8083 8084 11334
 COPY rootfs /
 RUN chmod +x /usr/local/bin/* /services/*/run /services/.s6-svscan/finish
 CMD ["run.sh"]

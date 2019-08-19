@@ -60,7 +60,7 @@ if [ -z "$DOMAIN" ]; then
  exit 1
 fi
 
-if [ "${DBHOST}" = "mariadb" ] && [ "$(dig A mariadb +short +search)" = "127.0.0.1" ]; then
+if [ "${DBHOST}" = "mariadb" ] && [ "$(grep "\smariadb$" /etc/hosts | awk '{ print $1; }' | xargs)" = "127.0.0.1" ]; then
  DBHOST="localhost"
 fi
 
@@ -78,7 +78,7 @@ grep -q "${DBHOST}" /etc/hosts
 
 if [ $? -ne 0 ]; then
  echo "[INFO] MariaDB/PostgreSQL hostname not found in /etc/hosts"
- IP=$(dig A ${DBHOST} +short +search)
+ IP=$(dig A ${DBHOST} +short +search +dnssec)
  if [ -n "$IP" ]; then
   echo "[INFO] Container IP found, adding a new record in /etc/hosts"
   echo "${IP} ${DBHOST}" >> /etc/hosts
@@ -96,7 +96,7 @@ grep -q "${REDIS_HOST}" /etc/hosts
 
 if [ $? -ne 0 ]; then
  echo "[INFO] Redis hostname not found in /etc/hosts"
- IP=$(dig A ${REDIS_HOST} +short +search)
+ IP=$(dig A ${REDIS_HOST} +short +search +dnssec)
  if [ -n "$IP" ]; then
   echo "[INFO] Container IP found, adding a new record in /etc/hosts"
   echo "${IP} ${REDIS_HOST}" >> /etc/hosts

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-SMTPHOST=postfixadmin
 DOMAIN=${DOMAIN:-$(hostname -d)}
 DBDRIVER=${DBDRIVER:-mysql}
 DBHOST=${DBHOST:-mariadb}
@@ -8,6 +7,7 @@ DBPORT=${DBPORT:-3306}
 DBUSER=${DBUSER:-postfix}
 DBNAME=${DBNAME:-postfix}
 DBPASS=${DBPASS:-}
+SMTPHOST=${SMTPHOST:-localhost}
 ENCRYPTION=${ENCRYPTION:-"dovecot:SHA512-CRYPT"}
 FETCHMAIL_EXTRA_OPTIONS=${FETCHMAIL_EXTRA_OPTIONS:-"NO"}
 PASSVAL_MIN_LEN=${PASSVAL_MIN_LEN:-5}
@@ -28,6 +28,10 @@ fi
 
 if [ "$DBDRIVER" = "mysql" ]; then
  DBDRIVER=mysqli;
+fi
+
+if [ "${DBHOST}" = "mariadb" ] && [ "$(grep "\smariadb$" /etc/hosts | awk '{ print $1; }' | xargs)" = "127.0.0.1" ]; then
+ DBHOST="localhost"
 fi
 
 # Local postfixadmin configuration file
