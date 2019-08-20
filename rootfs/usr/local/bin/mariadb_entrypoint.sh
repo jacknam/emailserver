@@ -5,6 +5,7 @@ DBUSER=${DBUSER:-postfix}
 DBPASS=${DBPASS:-postfix}
 ADMINIP=${ADMINIP:-}
 SQLPATH=/etc/mysql/docker
+ROOTPASS=$(openssl rand -base64 32)
 EXECSQL=""
 DUMPDB=""
 
@@ -21,7 +22,9 @@ secure_installation() {
 
 read -r -d '' tmp_sql <<-EOSQL || true
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost') ;
+DELETE FROM mysql.user WHERE User='' OR Password='' ;
 DROP DATABASE IF EXISTS test ;
+CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY '${ROOTPASS}' ;
 GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 EOSQL
 
@@ -197,7 +200,6 @@ create_pmadb
 [ -z "${EXECSQL}" ] && exit 0
 EXECSQL+="FLUSH PRIVILEGES ;"
 
-ROOTPASS=$(openssl rand -base64 32)
 INITFILE="${SQLPATH}/init_file"
 cat > "${INITFILE}" <<EOF
 UPDATE mysql.user SET authentication_string=PASSWORD('${ROOTPASS}'),password_expired='N',plugin='mysql_native_password' WHERE User='root' AND Host='localhost' ;
