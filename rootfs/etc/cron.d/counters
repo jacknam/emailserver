@@ -8,3 +8,8 @@
 00 00 * * * root echo 0 > /tmp/counters/rsyslogd
 00 00 * * * root echo 0 > /tmp/counters/unbound
 00 00 * * * root echo 0 > /tmp/counters/cert_watcher
+00 00 * * * root echo 0 > /tmp/counters/redis
+00 00 * * * root echo 0 > /tmp/counters/mariadb
+00 00 * * * root echo 0 > /tmp/counters/postfixadmin
+00 00 * * * root echo 0 > /tmp/counters/phpmyadmin
+00 00 * * * root echo 0 > /tmp/counters/rainloop

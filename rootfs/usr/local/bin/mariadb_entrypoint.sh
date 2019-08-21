@@ -21,11 +21,11 @@ secure_installation() {
  local tmp_sql=""
 
 read -r -d '' tmp_sql <<-EOSQL || true
-DROP DATABASE IF EXISTS test ;
-DELETE FROM mysql.user WHERE USER='root' AND HOST NOT IN ('localhost','127.0.0.1') ;
-DELETE FROM mysql.user WHERE User <> 'root' AND (User='' OR Password='') ;
-CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY '${ROOTPASS}' ;
+DELETE FROM mysql.user WHERE USER='root' AND HOST NOT IN ('localhost') ;
+SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${ROOTPASS}') ;
 GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
+DROP DATABASE IF EXISTS test ;
+DELETE FROM mysql.user WHERE User <> 'root' AND (User='' OR Password='') ;
 EOSQL
 
  EXECSQL+="${tmp_sql}"$'\n'

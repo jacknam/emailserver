@@ -1,0 +1,31 @@
+#!/bin/bash
+chown -R vmail:vmail /var/mail/vhosts
+chown -R vmail:vmail /var/mail/dkim
+chown -R vmail:vmail /var/mail/sieve
+chown -R _rspamd:_rspamd /var/mail/rspamd
+chown -R clamav:clamav /var/mail/clamav
+chown -R redis:redis /var/mail/redis
+chown -R mysql:mysql /var/mail/mysql
+
+chmod -R 700 /var/mail/vhosts
+chmod 755 /var/mail/vhosts
+chmod 750 /var/mail/rspamd
+
+find /var/mail/dkim -type f -name *.key -exec chmod 444 {} \;
+find /var/mail/rspamd/local.d -type f -name *.inc -exec chmod 644 {} \;
+
+chgrp -R postdrop /var/mail/postfix/spool/public
+chgrp -R postdrop /var/mail/postfix/spool/maildrop
+postfix set-permissions &>/dev/null
+
+folders="upload save public/themes public/locale"
+for folder in ${folders}; do
+ chown -R phpmyadmin:phpmyadmin "/var/mail/phpmyadmin/${folder}"
+done
+
+folders="data themes static"
+for folder in ${folders}; do
+ chown -R rainloop:rainloop "/var/mail/rainloop/${folder}"
+done
+
+echo "completed to re-set permissions"
