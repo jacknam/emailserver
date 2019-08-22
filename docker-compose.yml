@@ -1,12 +1,12 @@
 version: "3"
 
 networks:
- app_network:
+ email_network:
   external: true
 
 services:
  emailserver:
-  image: jacknam/emailserver:1.0
+  image: jacknam/emailserver:latest
   container_name: emailserver
   restart: ${RESTART_MODE}
   domainname: ${MAILSERVER_DOMAIN} # Mail server A/MX/FQDN & reverse PTR = mail.domain.tld.
@@ -26,27 +26,37 @@ services:
    - "4190:4190" # SIEVE - Optional
    - "4191:3306" # MARIADB - Optional
    - "8081:8081" # RAINLOOP - Optional
-   - "8082:11334" # RSPAMD WEB - Optional
    - "8083:8083" # POSTFIXADMIN - Optional
    - "8084:8084" # PHPMYADMIN - Optional
+   - "11334:11334" # RSPAMD WEB - Optional
   environment:
-   - DBPASS=${DATABASE_USER_PASSWORD} # MariaDB database password (required)
+   - DBPASS=${MAILSERVER_DB_PASSWORD} # MariaDB database password (required)
    - RSPAMD_PASSWORD=${RSPAMD_PASSWORD} # Rspamd WebUI password (required)
-   - ADMINIP=${MAILSERVER_ADMIN_IP}
-  # - GATEWAY_IP=${MAILSERVER_GATEWAY}
+   - ADMINIP=${MAILSERVER_ADMIN_IP} # Integrated MariaDB Remote Admin IP
+  # - DBDRIVER="mysql" # Database type: mysql, pgsql, ldap. Default mysql
+  # - DBHOST="mariadb" # Database instance ip/hostname. Default mariadb
+  # - DBPORT=3306 # Database instance port (ldap 389). Default 3306
+  # - DBUSER="postfix" # Postfix Database username. Default postfix
+  # - DBNAME="postfix" # Postfix Database name. Default postfix
+  # - REDIS_HOST="redis" # Redis instance ip/hostname. Default redis
+  # - REDIS_PORT=6379 # Redis instance port. Default 6379
   # - DISABLE_RAINLOOP=true # Disable local rainloop
+  # - SMTPHOST="localhost" # postfixadmin SMTP server ip/hostname. Default localhost
   # - DISABLE_POSTFIXADMIN=true # Disable local postfixadmin
   # - DISABLE_PHPMYADMIN=true # Disable local phpmyadmin
   # - ADD_DOMAINS=aa.tld, www.bb.tld... # Add additional domains separated by commas (needed for dkim keys etc.)
   # - DEBUG_MODE=true # Enable Postfix, Dovecot, Rspamd and Unbound verbose logging
   # - ENABLE_POP3=true # Enable POP3 protocol
   # - ENABLE_FETCHMAIL=true # Enable fetchmail forwarding
+  # - FETCHMAIL_EXTRA_OPTIONS="smtp localhost/10025" # Should be enable when using ENABLE_FETCHMAIL
   # - DISABLE_RATELIMITING=false # Enable ratelimiting policy
   # - DISABLE_CLAMAV=true # Disable virus scanning
   # - DISABLE_SIGNING=true # Disable DKIM/ARC signing
   # - DISABLE_GREYLISTING=true # Disable greylisting policy
+  # - DISABLE_DNS_RESOLVER=true # Use docker dns: setting
   volumes:
    - ${VOLUMES_ROOT_PATH}/mail:/var/mail
    - ${VOLUMES_ROOT_PATH}/ssl:/etc/letsencrypt
   networks:
-   - app_network
+   email_network:
+    ipv4_address: ${MAILSERVER_IP}

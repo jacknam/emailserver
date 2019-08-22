@@ -1,0 +1,18 @@
+#!/bin/bash
+cat /etc/hosts | grep mariadb | grep -q 127.0.0.1 || exit 0
+
+DBUSER=${DBUSER:-postfix}
+DBPASS=${DBPASS:-postfix}
+
+for i in {30..0}; do
+ if mysql -u"${DBUSER}" -p"${DBPASS}" -e "show databases;" >/dev/null 2>&1; then
+  break
+ fi
+ sleep 1
+done
+
+if [ "$i" = 0 ]; then
+ exit 1
+fi
+
+exit 0

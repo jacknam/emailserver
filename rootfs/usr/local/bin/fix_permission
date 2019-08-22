@@ -12,7 +12,7 @@ chmod 755 /var/mail/vhosts
 chmod 750 /var/mail/rspamd
 
 find /var/mail/dkim -type f -name *.key -exec chmod 444 {} \;
-find /var/mail/rspamd/local.d -type f -name *.inc -exec chmod 644 {} \;
+find /var/mail/rspamd/local.d -type f -name *.inc -exec chmod 646 {} \;
 
 chgrp -R postdrop /var/mail/postfix/spool/public
 chgrp -R postdrop /var/mail/postfix/spool/maildrop

@@ -5,22 +5,23 @@ rspamd_local_setup() {
 
  local local_path="/var/mail/rspamd/local.d"
  mkdir -p $local_path
- chown -R _rspamd:_rspamd $local_path
  chmod 750 $local_path
 
- echo "#Local from blacklist" > $local_path/local_bl_from.map.inc
- echo "#Local ip blacklist" > $local_path/local_bl_ip.map.inc
- echo "#Local rcpt blacklist" > $local_path/local_bl_rcpt.map.inc
- echo "#Local from whitelist" > $local_path/local_wl_from.map.inc
- echo "#Local ip whitelist" > $local_path/local_wl_ip.map.inc
- echo "#Local rcpt whitelist" > $local_path/local_wl_rcpt.map.inc
- chmod o+w $local_path/local_bl_from.map.inc
- chmod o+w $local_path/local_bl_ip.map.inc
- chmod o+w $local_path/local_bl_rcpt.map.inc
- chmod o+w $local_path/local_wl_from.map.inc
- chmod o+w $local_path/local_wl_ip.map.inc
- chmod o+w $local_path/local_wl_rcpt.map.inc
+ local inc_file=""
+ local type_name=""
+ local maps="from ip rcpt"
+ for type in bl wl; do
+  type_name=$([ "$type" = "bl" ] && echo "blacklist" || echo "whitelist")
+  for map in ${maps}; do
+   inc_file="$local_path/local_${type}_${map}.map.inc"
+   if [ ! -f "$inc_file" ]; then
+    echo "#Local ${type_name} ${map}" > "$inc_file"
+    chmod o+w "$inc_file"
+   fi
+  done
+ done
 
+ chown -R _rspamd:_rspamd $local_path
  return 0
 }
 
