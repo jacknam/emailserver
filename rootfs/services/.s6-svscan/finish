@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+# Shutdown DB Server
+if [ -f "/etc/mysql/debian.cnf" ]; then
+ mysqladmin --defaults-file=/etc/mysql/debian.cnf --shutdown_timeout=15 shutdown 2>&1
+fi
 
 # Make sure all services have actually exited *completely*
 for svc in /services/[a-z]*; do [ -d "$svc" ] && redirfd -w 2 /dev/null s6-svc -d -wD "$svc"; done

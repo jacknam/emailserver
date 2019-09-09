@@ -10,6 +10,7 @@ ARG RSPAMD_VER=1.9.4
 ARG GUCCI_VER=1.2.1
 ARG PFA_VER=3.2
 ARG PMA_VER=4.9.0.1
+ARG MARIADB_VER=10.4
 ARG RAINLOOP_VER=1.13.0
 
 ARG SKALIBS_SHA256_HASH="431c6507b4a0f539b6463b4381b9b9153c86ad75fa3c6bfc9dc4722f00b166ba"
@@ -38,6 +39,7 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
     wget \
     unzip \
     pkg-config \
+    software-properties-common \
     liblua5.3-dev \
     libluajit-5.1-dev \
     libglib2.0-dev \
@@ -129,6 +131,10 @@ RUN groupadd -r postfixadmin && useradd -r -g postfixadmin postfixadmin
 RUN groupadd -r phpmyadmin && useradd -r -g phpmyadmin phpmyadmin
 RUN groupadd -r rainloop && useradd -r -g rainloop rainloop
 
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xF1656F24C74CD1D8 \
+ && add-apt-repository "deb [arch=amd64] http://ftp.kaist.ac.kr/mariadb/repo/${MARIADB_VER}/debian buster main" \
+ && apt-get update && apt-get install -y -q --no-install-recommends "mariadb-server=1:10.4.7+maria~buster" mariadb-backup socat
+
 RUN apt-get install -y -q --no-install-recommends \
     postfix postfix-pgsql postfix-mysql postfix-ldap postfix-pcre libsasl2-modules \
     dovecot-core dovecot-imapd dovecot-lmtpd dovecot-pgsql dovecot-mysql dovecot-ldap dovecot-sieve dovecot-managesieved dovecot-pop3d \
@@ -136,7 +142,7 @@ RUN apt-get install -y -q --no-install-recommends \
     clamav clamav-daemon \
     python3-setuptools python3-gpg \
     rsyslog dnsutils curl unbound jq rsync inotify-tools \
-    redis-server mariadb-server net-tools \
+    redis-server net-tools \
  && rm -rf /var/spool/postfix \
  && ln -s /var/mail/postfix/spool /var/spool/postfix \
  && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && rm -f get-pip.py \
@@ -176,7 +182,7 @@ RUN apt-get purge -y ${BUILD_DEPS} \
  && apt-get clean \
  && rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/debconf/*-old
 
-RUN sed -ir '/^appendonly no/c\appendonly yes' /etc/redis/redis.conf; \
+RUN sed -i -r '/^appendonly no/c\appendonly yes' /etc/redis/redis.conf; \
  echo 'maxmemory 128mb\nmaxmemory-policy allkeys-lru' >> /etc/redis/redis.conf; \
  mkdir -p /var/lib/redis /var/run/redis; \
  chown -R redis:redis /var/lib/redis /var/run/redis; \

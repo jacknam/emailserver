@@ -1,2 +1,3 @@
-#!/bin/sh
-exec rsyslogd -n -f /etc/rsyslog/rsyslog.conf
+#!/bin/bash
+logger -p mail.info "s6-supervise : spawning rsyslog process"
+exec su root -g root -c "rsyslogd -n -f /etc/rsyslog/rsyslog.conf"

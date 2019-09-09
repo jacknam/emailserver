@@ -2,10 +2,10 @@
 
 # Launch all services in order
 # -----------------------------------------------------------
-# 1. rsyslogd      (logger)
-# 2. unbound       (dns resolver)
-# 3. redis         (redis-serever)
-# 4. mariadb       (mysql server)
+# 1. redis         (redis-serever)
+# 2. mariadb       (mysql server)
+# 3. rsyslogd      (logger)
+# 4. unbound       (dns resolver)
 # 5. postfix       (smtp server)
 # 6. dovecot       (imap/pop server)
 # 7. rspamd        (anti-spam)
@@ -17,14 +17,16 @@
 # 13. phpmyadmin   (mysql admin php web)
 # 14. rainloop     (webmail php web)
 
-s6-svc -u /services/rsyslogd && s6-svwait -u /services/rsyslogd
-s6-svc -u /services/unbound  && [ "$DISABLE_DNS_RESOLVER" = true ] || s6-svwait -u /services/unbound
+# init dependency first
 s6-svc -u /services/redis && s6-svwait -u /services/redis
 s6-svc -u /services/mariadb && s6-svwait -u /services/mariadb
 if ! wait_local_mariadb; then
  logger -p mail.info "s6-supervise : failed to initialize database. System can't go further."
  exit 1
 fi
+
+s6-svc -u /services/rsyslogd && s6-svwait -u /services/rsyslogd
+s6-svc -u /services/unbound  && [ "$DISABLE_DNS_RESOLVER" = true ] || s6-svwait -u /services/unbound
 s6-svc -u /services/postfix  && s6-svwait -u /services/postfix
 s6-svc -u /services/dovecot
 s6-svc -u /services/rspamd

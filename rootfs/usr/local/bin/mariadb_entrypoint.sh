@@ -5,7 +5,8 @@ DBUSER=${DBUSER:-postfix}
 DBPASS=${DBPASS:-postfix}
 ADMINIP=${ADMINIP:-}
 SQLPATH=/etc/mysql/docker
-ROOTPASS=$(openssl rand -base64 32)
+CLIENT_CNF=/etc/mysql/debian.cnf
+ROOTPASS=""
 EXECSQL=""
 DUMPDB=""
 
@@ -14,22 +15,46 @@ get_config() {
  mysqld --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null | awk '$1 == "'"$conf"'" && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'
 }
 
+get_rootpass() {
+ if [ ! -f "${CLIENT_CNF}" ]; then
+cat > "${CLIENT_CNF}" <<EOF
+[client]
+host     = localhost
+user     = root
+password =
+socket   = /var/run/mysqld/mysqld.sock
+[mysql_upgrade]
+host     = localhost
+user     = root
+password =
+socket   = /var/run/mysqld/mysqld.sock
+basedir  = /usr
+EOF
+ fi
+
+ ROOTPASS=$(cat ${CLIENT_CNF} | grep "^password\s*=" | head -1 | cut -d"=" -f2- | xargs)
+ if [ -z "${ROOTPASS}" ]; then
+  ROOTPASS=$(openssl rand -base64 32)
+  sed -i "s/^password\s.*/password = ${ROOTPASS}/g" "${CLIENT_CNF}"
+ fi
+
+ return 0
+}
+
 secure_installation() {
  [ -e "${SQLPATH}/mysql_secure_installation" ] && return 0
  touch "${SQLPATH}/mysql_secure_installation"
 
  local tmp_sql=""
-
 read -r -d '' tmp_sql <<-EOSQL || true
 DELETE FROM mysql.user WHERE USER='root' AND HOST NOT IN ('localhost') ;
 SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${ROOTPASS}') ;
 GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 DROP DATABASE IF EXISTS test ;
-DELETE FROM mysql.user WHERE User <> 'root' AND (User='' OR Password='') ;
+DELETE FROM mysql.user WHERE User NOT IN ('mysql.sys', 'mysqlxsys', 'root') AND (User='' OR Password='') ;
 EOSQL
 
  EXECSQL+="${tmp_sql}"$'\n'
-
  return 0
 }
 
@@ -193,6 +218,7 @@ DATADIR="$(get_config 'datadir' | sed 's/\/$//')"
 chown -R mysql:mysql /var/mail/mysql
 
 [ ! -d "${SQLPATH}" ] && mkdir -p "${SQLPATH}"
+get_rootpass
 secure_installation
 admin_access
 create_db
@@ -225,10 +251,14 @@ else
  echo "${EXECSQL}" | "${mysql[@]}" >/dev/null 2>&1
  if [ -n "${DUMPDB}" ]; then
   dump_sql="${SQLPATH}/${DUMPDB}_dump.sql"
-  mysqldump -root -p"${ROOTPASS}" "$DUMPDB" > "${dump_sql}"
+  mysqldump --defaults-file="${CLIENT_CNF}" "${DUMPDB}" > "${dump_sql}"
   "${mysql[@]}" "${DBNAME}" < "${dump_sql}" >/dev/null 2>&1
   echo "DROP DATABASE IF EXISTS \`${DUMPDB}\` ;" | "${mysql[@]}"
  fi
+ if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
+  mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
+ fi
+ mysqladmin --defaults-file="${CLIENT_CNF}" --shutdown_timeout=5 shutdown 2>&1
 fi
 
 kill -s TERM "$pid" || ! wait "$pid"
