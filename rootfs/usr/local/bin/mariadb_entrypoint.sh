@@ -16,26 +16,22 @@ get_config() {
 }
 
 get_rootpass() {
- if [ ! -f "${CLIENT_CNF}" ]; then
+ ROOTPASS=$(cat ${CLIENT_CNF} 2>/dev/null | grep "^password\s*=" | head -1 | cut -d"=" -f2- | xargs)
+ if [ -z "${ROOTPASS}" ]; then
+  ROOTPASS=$(openssl rand -base64 32)
 cat > "${CLIENT_CNF}" <<EOF
 [client]
 host     = localhost
 user     = root
-password =
+password = "${ROOTPASS}"
 socket   = /var/run/mysqld/mysqld.sock
 [mysql_upgrade]
 host     = localhost
 user     = root
-password =
+password = "${ROOTPASS}"
 socket   = /var/run/mysqld/mysqld.sock
 basedir  = /usr
 EOF
- fi
-
- ROOTPASS=$(cat ${CLIENT_CNF} | grep "^password\s*=" | head -1 | cut -d"=" -f2- | xargs)
- if [ -z "${ROOTPASS}" ]; then
-  ROOTPASS=$(openssl rand -base64 32)
-  sed -i "s/^password\s.*/password = ${ROOTPASS}/g" "${CLIENT_CNF}"
  fi
 
  return 0

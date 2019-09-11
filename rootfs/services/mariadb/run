@@ -9,4 +9,4 @@ if ! mariadb_entrypoint.sh; then
 fi
 
 logger -p mail.info "s6-supervise : spawning mariadb process"
-exec mysqld
+exec mysqld --user=root

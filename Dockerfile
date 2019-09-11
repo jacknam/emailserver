@@ -184,6 +184,8 @@ RUN apt-get purge -y ${BUILD_DEPS} \
 
 RUN sed -i -r '/^appendonly no/c\appendonly yes' /etc/redis/redis.conf; \
  echo 'maxmemory 128mb\nmaxmemory-policy allkeys-lru' >> /etc/redis/redis.conf; \
+ echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf; \
+ echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled; \
  mkdir -p /var/lib/redis /var/run/redis; \
  chown -R redis:redis /var/lib/redis /var/run/redis; \
  chmod 777 /var/run/redis
