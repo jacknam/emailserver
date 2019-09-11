@@ -229,7 +229,7 @@ FLUSH PRIVILEGES ;
 EOF
 
 SOCKET="$(get_config 'socket')"
-mysqld --skip-networking --socket="${SOCKET}" --init-file="${INITFILE}" &
+mysqld --user=root --skip-networking --socket="${SOCKET}" --init-file="${INITFILE}" &
 pid="$!"
 mysql=( mysql --protocol=socket -uroot -p"${ROOTPASS}" -hlocalhost --socket="${SOCKET}" )
 
