@@ -133,7 +133,7 @@ RUN groupadd -r rainloop && useradd -r -g rainloop rainloop
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xF1656F24C74CD1D8 \
  && add-apt-repository "deb [arch=amd64] http://ftp.kaist.ac.kr/mariadb/repo/${MARIADB_VER}/debian buster main" \
- && apt-get update && apt-get install -y -q --no-install-recommends "mariadb-server=1:10.4.7+maria~buster" mariadb-backup socat
+ && apt-get update && apt-get install -y -q --no-install-recommends mariadb-server mariadb-backup socat
 
 RUN apt-get install -y -q --no-install-recommends \
     postfix postfix-pgsql postfix-mysql postfix-ldap postfix-pcre libsasl2-modules \
