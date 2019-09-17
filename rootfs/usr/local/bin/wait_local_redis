@@ -1,0 +1,15 @@
+#!/bin/bash
+cat /etc/hosts | grep redis | grep -q 127.0.0.1 || exit 0
+
+for i in {30..0}; do
+ if [ "$(redis-cli ping 2>/dev/null | grep -c PONG)" = "1" ]; then
+  break
+ fi
+ sleep 1
+done
+
+if [ "$i" = 0 ]; then
+ exit 1
+fi
+
+exit 0

@@ -19,6 +19,9 @@
 
 # init dependency first
 s6-svc -u /services/redis && s6-svwait -u /services/redis
+if ! wait_local_redis; then
+ logger -p mail.info "s6-supervise : failed to initialize redis-sever"
+fi
 s6-svc -u /services/mariadb && s6-svwait -u /services/mariadb
 if ! wait_local_mariadb; then
  logger -p mail.info "s6-supervise : failed to initialize database. System can't go further."
